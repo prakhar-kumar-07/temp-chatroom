@@ -4,7 +4,7 @@ let stompClient = null;
 let currentRoom = null;
 let currentUsername = null;
 let colors = [
-    'text-red-400', 'text-yellow-400', 'text-green-400', 
+    'text-red-400', 'text-yellow-400', 'text-green-400',
     'text-blue-400', 'text-indigo-400', 'text-purple-400', 'text-pink-400'
 ];
 
@@ -48,16 +48,16 @@ function showScreen(screenName) {
         screen.classList.add('hidden');
         screen.classList.remove('active');
     });
-    
+
     // Add small delay to allow display:block before opacity transition
     screens[screenName].classList.remove('hidden');
     setTimeout(() => {
         screens[screenName].classList.add('active');
         // Auto focus inputs
-        if(screenName === 'join') inputs.roomCode.focus();
-        if(screenName === 'chat') inputs.message.focus();
+        if (screenName === 'join') inputs.roomCode.focus();
+        if (screenName === 'chat') inputs.message.focus();
     }, 10);
-    
+
 }
 
 function showToast(message, type = 'info') {
@@ -68,19 +68,19 @@ function showToast(message, type = 'info') {
         success: 'bg-green-500/90 border-green-600',
         info: 'bg-blue-500/90 border-blue-600'
     };
-    
+
     toast.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg border backdrop-blur-sm transform transition-all duration-300 translate-x-full opacity-0 flex items-center gap-3`;
-    
+
     const icon = type === 'error' ? 'fa-circle-xmark' : type === 'success' ? 'fa-circle-check' : 'fa-circle-info';
     toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
-    
+
     container.appendChild(toast);
-    
+
     // Animate in
     setTimeout(() => {
         toast.classList.remove('translate-x-full', 'opacity-0');
     }, 10);
-    
+
     // Animate out and remove
     setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
@@ -102,7 +102,7 @@ function validateUsername() {
 }
 
 function getUserColor(username) {
-    if(!userColors[username]) {
+    if (!userColors[username]) {
         // Hash string to pick color
         let hash = 0;
         for (let i = 0; i < username.length; i++) {
@@ -116,7 +116,7 @@ function getUserColor(username) {
 
 // Event Listeners - Navigation
 buttons.showJoin.addEventListener('click', () => {
-    if(validateUsername()) showScreen('join');
+    if (validateUsername()) showScreen('join');
 });
 
 buttons.backJoin.addEventListener('click', () => {
@@ -126,18 +126,18 @@ buttons.backJoin.addEventListener('click', () => {
 
 // Create Room Flow
 buttons.createRoom.addEventListener('click', async () => {
-    if(!validateUsername()) return;
-    
+    if (!validateUsername()) return;
+
     // Disable button to prevent spam
     const originalContent = buttons.createRoom.innerHTML;
     buttons.createRoom.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl text-purple-400"></i><span class="font-medium text-sm">Creating...</span>';
     buttons.createRoom.disabled = true;
-    
+
     try {
         const response = await fetch('/api/room/create');
         const data = await response.json();
         const code = data.roomCode;
-        
+
         connectToWebSocket(code);
     } catch (e) {
         showToast('Failed to create room', 'error');
@@ -151,23 +151,23 @@ buttons.createRoom.addEventListener('click', async () => {
 buttons.joinRoom.addEventListener('click', async () => {
     const code = inputs.roomCode.value.trim().toUpperCase();
     const errorEl = document.getElementById('join-error');
-    
-    if(code.length !== 6) {
+
+    if (code.length !== 6) {
         errorEl.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> Code must be 6 characters';
         errorEl.classList.remove('hidden');
         return;
     }
-    
+
     // Disable button
     const originalContent = buttons.joinRoom.innerHTML;
     buttons.joinRoom.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Joining...';
     buttons.joinRoom.disabled = true;
-    
+
     try {
         const response = await fetch(`/api/room/check/${code}`);
         const data = await response.json();
-        
-        if(data.exists) {
+
+        if (data.exists) {
             connectToWebSocket(code);
         } else {
             errorEl.innerHTML = '<i class="fa-solid fa-circle-exclamation mr-1"></i> Room not found';
@@ -193,7 +193,7 @@ function connectToWebSocket(roomCode) {
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
     stompClient.debug = null; // Disable debug logging
-    
+
     stompClient.connect({}, () => {
         onConnected(roomCode);
     }, onError);
@@ -201,16 +201,16 @@ function connectToWebSocket(roomCode) {
 
 function onConnected(roomCode) {
     currentRoom = roomCode;
-    
+
     // Subscribe to the Public Topic
     stompClient.subscribe(`/topic/room/${currentRoom}`, onMessageReceived);
 
     // Tell server user joined
     stompClient.send(`/app/chat/${currentRoom}/addUser`,
         {},
-        JSON.stringify({sender: currentUsername, type: 'JOIN'})
+        JSON.stringify({ sender: currentUsername, type: 'JOIN' })
     );
-    
+
     // Setup UI
     chatArea.roomCodeDisplay.innerText = currentRoom;
     chatArea.messages.innerHTML = ''; // Clear old messages
@@ -222,7 +222,7 @@ function onError(error) {
 }
 
 function disconnect() {
-    if(stompClient !== null) {
+    if (stompClient !== null) {
         stompClient.disconnect();
     }
     showScreen('home');
@@ -236,37 +236,37 @@ buttons.leaveRoom.addEventListener('click', disconnect);
 chatArea.form.addEventListener('submit', (e) => {
     e.preventDefault();
     const content = inputs.message.value.trim();
-    
-    if(content && stompClient) {
+
+    if (content && stompClient) {
         const message = {
             sender: currentUsername,
             content: content,
             type: 'CHAT'
         };
-        
+
         stompClient.send(`/app/chat/${currentRoom}/sendMessage`, {}, JSON.stringify(message));
         inputs.message.value = '';
-        
+
         // Clear typing
         isTyping = false;
         clearTimeout(typingTimer);
-        stompClient.send(`/app/chat/${currentRoom}/typing`, {}, JSON.stringify({sender: currentUsername, type: 'TYPING', content: 'false'}));
+        stompClient.send(`/app/chat/${currentRoom}/typing`, {}, JSON.stringify({ sender: currentUsername, type: 'TYPING', content: 'false' }));
     }
 });
 
 // Typing indicator logic
 inputs.message.addEventListener('input', () => {
-    if(!stompClient || !currentRoom) return;
-    
-    if(!isTyping) {
+    if (!stompClient || !currentRoom) return;
+
+    if (!isTyping) {
         isTyping = true;
-        stompClient.send(`/app/chat/${currentRoom}/typing`, {}, JSON.stringify({sender: currentUsername, type: 'TYPING', content: 'true'}));
+        stompClient.send(`/app/chat/${currentRoom}/typing`, {}, JSON.stringify({ sender: currentUsername, type: 'TYPING', content: 'true' }));
     }
-    
+
     clearTimeout(typingTimer);
     typingTimer = setTimeout(() => {
         isTyping = false;
-        stompClient.send(`/app/chat/${currentRoom}/typing`, {}, JSON.stringify({sender: currentUsername, type: 'TYPING', content: 'false'}));
+        stompClient.send(`/app/chat/${currentRoom}/typing`, {}, JSON.stringify({ sender: currentUsername, type: 'TYPING', content: 'false' }));
     }, 1500);
 });
 
@@ -274,13 +274,13 @@ let typingUsers = new Set();
 
 function onMessageReceived(payload) {
     const message = JSON.parse(payload.body);
-    
+
     // Update user count if present
-    if(message.userCount) {
+    if (message.userCount) {
         chatArea.userCount.innerText = `${message.userCount} user${message.userCount > 1 ? 's' : ''} online`;
     }
-    
-    if(message.type === 'JOIN') {
+
+    if (message.type === 'JOIN') {
         appendSystemMessage(`${message.sender} joined the room`, 'text-green-400');
     } else if (message.type === 'LEAVE') {
         appendSystemMessage(`${message.sender} left the room`, 'text-gray-500');
@@ -288,8 +288,8 @@ function onMessageReceived(payload) {
         typingUsers.delete(message.sender);
         updateTypingDisplay();
     } else if (message.type === 'TYPING') {
-        if(message.sender !== currentUsername) {
-            if(message.content === 'true') {
+        if (message.sender !== currentUsername) {
+            if (message.content === 'true') {
                 typingUsers.add(message.sender);
             } else {
                 typingUsers.delete(message.sender);
@@ -300,21 +300,21 @@ function onMessageReceived(payload) {
         // Clear this user from typing
         typingUsers.delete(message.sender);
         updateTypingDisplay();
-        
+
         appendChatMessage(message);
     }
 }
 
 function updateTypingDisplay() {
-    if(typingUsers.size === 0) {
+    if (typingUsers.size === 0) {
         chatArea.typingIndicator.style.opacity = '0';
         chatArea.typingIndicator.innerHTML = '';
     } else {
         const users = Array.from(typingUsers);
         let text = users.length === 1 ? `${users[0]} is typing` :
-                   users.length === 2 ? `${users[0]} and ${users[1]} are typing` :
-                   `${users.length} people are typing`;
-                   
+            users.length === 2 ? `${users[0]} and ${users[1]} are typing` :
+                `${users.length} people are typing`;
+
         chatArea.typingIndicator.innerHTML = `${text} <span class="typing-dots"><span></span><span></span><span></span></span>`;
         chatArea.typingIndicator.style.opacity = '1';
     }
@@ -336,10 +336,10 @@ function appendChatMessage(message) {
     const isMe = message.sender === currentUsername;
     const el = document.createElement('div');
     const colorClass = getUserColor(message.sender);
-    
+
     el.className = `flex flex-col w-full ${isMe ? 'items-end' : 'items-start'} ${isMe ? 'msg-enter-right' : 'msg-enter-left'}`;
-    
-    if(isMe) {
+
+    if (isMe) {
         el.innerHTML = `
             <div class="flex flex-col max-w-[80%]">
                 <div class="msg-bubble bg-purple-600 text-white rounded-2xl rounded-tr-sm px-5 py-3 shadow-md shadow-purple-900/20">
@@ -357,17 +357,22 @@ function appendChatMessage(message) {
             </div>
         `;
     }
-    
+
     chatArea.messages.appendChild(el);
     scrollToBottom();
 }
 
 function scrollToBottom() {
-    chatArea.messages.scrollTop = chatArea.messages.scrollHeight;
+    setTimeout(() => {
+        chatArea.messages.scrollTo({
+            top: chatArea.messages.scrollHeight,
+            behavior: 'smooth'
+        });
+    }, 100);
 }
 
 function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, 
+    return str.replace(/[&<>'"]/g,
         tag => ({
             '&': '&amp;',
             '<': '&lt;',
@@ -379,6 +384,6 @@ function escapeHTML(str) {
 }
 
 // Input formatting
-inputs.roomCode.addEventListener('input', function() {
+inputs.roomCode.addEventListener('input', function () {
     this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 });
