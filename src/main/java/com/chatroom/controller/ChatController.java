@@ -28,6 +28,7 @@ public class ChatController {
     @MessageMapping("/chat/{roomCode}/sendMessage")
     public void sendMessage(@DestinationVariable String roomCode, @Payload ChatMessage chatMessage) {
         chatMessage.setUserCount(roomManager.getUserCount(roomCode));
+        chatMessage.setActiveUsers(roomManager.getActiveUsers(roomCode));
         messagingTemplate.convertAndSend("/topic/room/" + roomCode, chatMessage);
     }
 
@@ -41,6 +42,7 @@ public class ChatController {
         roomManager.addUserToRoom(roomCode, chatMessage.getSender(), sessionId);
         
         chatMessage.setUserCount(roomManager.getUserCount(roomCode));
+        chatMessage.setActiveUsers(roomManager.getActiveUsers(roomCode));
         messagingTemplate.convertAndSend("/topic/room/" + roomCode, chatMessage);
     }
 
@@ -65,6 +67,7 @@ public class ChatController {
                     .sender(username)
                     .roomCode(roomCode)
                     .userCount(roomManager.getUserCount(roomCode))
+                    .activeUsers(roomManager.getActiveUsers(roomCode))
                     .build();
 
             messagingTemplate.convertAndSend("/topic/room/" + roomCode, leaveMessage);

@@ -15,6 +15,7 @@ public class ChatMessage {
     private String sender;
     private String roomCode;
     private int userCount;
+    private java.util.Set<String> activeUsers;
 
     public enum MessageType {
         CHAT,

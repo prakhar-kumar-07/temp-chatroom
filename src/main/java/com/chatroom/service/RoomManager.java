@@ -59,6 +59,13 @@ public class RoomManager {
         }
     }
 
+    public java.util.Set<String> getActiveUsers(String roomCode) {
+        if (roomExists(roomCode)) {
+            return rooms.get(roomCode);
+        }
+        return java.util.Collections.emptySet();
+    }
+
     public int getUserCount(String roomCode) {
         if (roomExists(roomCode)) {
             return rooms.get(roomCode).size();

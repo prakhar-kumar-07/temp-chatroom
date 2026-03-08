@@ -39,8 +39,14 @@ const chatArea = {
     roomCodeDisplay: document.getElementById('display-room-code'),
     userCount: document.getElementById('active-users-count'),
     typingIndicator: document.getElementById('typing-indicator'),
-    form: document.getElementById('chat-form')
+    form: document.getElementById('chat-form'),
+    showUsersBtn: document.getElementById('btn-show-users'),
+    usersModal: document.getElementById('users-modal'),
+    usersList: document.getElementById('users-list'),
+    closeUsersBtn: document.getElementById('btn-close-users')
 };
+
+let lastActiveUsers = [];
 
 // Utilities
 function showScreen(screenName) {
@@ -232,6 +238,45 @@ function disconnect() {
 
 buttons.leaveRoom.addEventListener('click', disconnect);
 
+// Users List Modal Toggle
+chatArea.showUsersBtn.addEventListener('click', () => {
+    chatArea.usersModal.classList.remove('hidden');
+    setTimeout(() => {
+        chatArea.usersModal.classList.remove('opacity-0');
+        chatArea.usersModal.querySelector('div').classList.remove('scale-95');
+        updateUsersListUI();
+    }, 10);
+});
+
+function hideUsersModal() {
+    chatArea.usersModal.classList.add('opacity-0');
+    chatArea.usersModal.querySelector('div').classList.add('scale-95');
+    setTimeout(() => chatArea.usersModal.classList.add('hidden'), 300);
+}
+
+chatArea.closeUsersBtn.addEventListener('click', hideUsersModal);
+chatArea.usersModal.addEventListener('click', (e) => {
+    if (e.target === chatArea.usersModal) hideUsersModal();
+});
+
+function updateUsersListUI() {
+    chatArea.usersList.innerHTML = '';
+    lastActiveUsers.sort().forEach(user => {
+        const isMe = user === currentUsername;
+        const colorClass = getUserColor(user);
+        const el = document.createElement('div');
+        el.className = 'flex items-center gap-3 p-2 hover:bg-gray-700/50 rounded-xl transition-colors';
+        el.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold ${colorClass.replace('text-', 'bg-').replace('-400', '-500/20')} ${colorClass}">
+                ${user.charAt(0).toUpperCase()}
+            </div>
+            <span class="font-medium text-sm flex-1 ${isMe ? 'text-purple-400' : 'text-gray-200'}">${user}${isMe ? ' (You)' : ''}</span>
+            ${isMe ? '' : '<div class="w-2 h-2 rounded-full bg-green-500"></div>'}
+        `;
+        chatArea.usersList.appendChild(el);
+    });
+}
+
 // Messaging
 chatArea.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -275,9 +320,15 @@ let typingUsers = new Set();
 function onMessageReceived(payload) {
     const message = JSON.parse(payload.body);
 
-    // Update user count if present
-    if (message.userCount) {
+    // Update user count and list if present
+    if (message.userCount !== undefined) {
         chatArea.userCount.innerText = `${message.userCount} user${message.userCount > 1 ? 's' : ''} online`;
+    }
+    if (message.activeUsers) {
+        lastActiveUsers = message.activeUsers;
+        if (!chatArea.usersModal.classList.contains('hidden')) {
+            updateUsersListUI();
+        }
     }
 
     if (message.type === 'JOIN') {
