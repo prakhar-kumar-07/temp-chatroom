@@ -48,6 +48,8 @@ public class ChatController {
 
     @MessageMapping("/chat/{roomCode}/typing")
     public void typing(@DestinationVariable String roomCode, @Payload ChatMessage chatMessage) {
+        chatMessage.setUserCount(roomManager.getUserCount(roomCode));
+        chatMessage.setActiveUsers(roomManager.getActiveUsers(roomCode));
         messagingTemplate.convertAndSend("/topic/room/" + roomCode, chatMessage);
     }
 

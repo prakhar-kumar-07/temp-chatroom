@@ -17,19 +17,29 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #4b5563; /* Tailwind gray-600 */
+    background: #4b5563;
+    /* Tailwind gray-600 */
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #6b7280; /* Tailwind gray-500 */
+    background: #6b7280;
+    /* Tailwind gray-500 */
 }
 
 /* Animations */
 @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
 }
 
 .animate-float {
@@ -41,6 +51,7 @@ body {
         opacity: 0;
         transform: translateX(20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -52,6 +63,7 @@ body {
         opacity: 0;
         transform: translateX(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -59,8 +71,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .msg-enter-right {
@@ -77,7 +96,6 @@ body {
 
 /* Hidden state utilities for screen transitions */
 .screen.active {
-    display: block;
     opacity: 1;
     z-index: 10;
 }
@@ -106,9 +124,20 @@ body {
 }
 
 @keyframes blink {
-    0% { opacity: 0.2; transform: translateY(0px); }
-    20% { opacity: 1; transform: translateY(-2px); }
-    100% { opacity: 0.2; transform: translateY(0px); }
+    0% {
+        opacity: 0.2;
+        transform: translateY(0px);
+    }
+
+    20% {
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+
+    100% {
+        opacity: 0.2;
+        transform: translateY(0px);
+    }
 }
 
 /* Responsive message container */
