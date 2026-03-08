@@ -416,7 +416,7 @@ function appendChatMessage(message) {
 function scrollToBottom() {
     setTimeout(() => {
         chatArea.messages.scrollTo({
-            top: chatArea.messages.scrollHeight,
+            top: chatArea.messages.scrollHeight + 100,
             behavior: 'smooth'
         });
     }, 100);
